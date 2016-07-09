@@ -1,53 +1,26 @@
-#include <string.h>
+#include "stdafx.h"
 
-typedef enum TYPE{ None, Int, Float, Double, Bool, Character }TYPE;
-
-typedef struct Sweets
+FOLDER *MySearch(char *str, FOLDER *pointer)
 {
-	//TYPE type = None;
-	union
-	{
-		int Integer;
-		float Float;
-		double Double;
-		bool Bool;
-		char Character;
-	}Candy;
-	Sweets * NextCandy;
-}Sweets;
-
-typedef struct Box
-{
-	char BoxName[20];
-	int level;
-	Box * FatherBox;
-	Box * NextBox;
-	Box * PreviousBox;
-	Box * BoxIn;
-	Sweets * Candies;
-}Box;
-
-Box *MySearch(char *str, Box *pointer)
-{
-	if (strcmp(pointer->BoxName, str) == 0) return pointer;
+	if (strcmp(pointer->FolderName, str) == 0) return pointer;
 	else
 	{
-		Box *ptr = NULL;
-		if (pointer->NextBox != NULL)
+		FOLDER *ptr = NULL;
+		if (pointer->NextFolder != NULL)
 		{
-			ptr = MySearch(str, pointer->NextBox);
+			ptr = MySearch(str, pointer->NextFolder);
 			if (ptr != pointer) return ptr;
 		}
-		if (pointer->BoxIn != NULL)
+		if (pointer->DownFolder != NULL)
 		{
-			ptr = MySearch(str, pointer->BoxIn);
+			ptr = MySearch(str, pointer->DownFolder);
 			if (ptr != pointer) return ptr;
-			else if (pointer->PreviousBox != NULL)return pointer->PreviousBox;
-			else if (pointer->FatherBox != NULL)return pointer->FatherBox;
+			else if (pointer->PreviousFolder != NULL)return pointer->PreviousFolder;
+			else if (pointer->UpFolder != NULL)return pointer->UpFolder;
 			else return NULL;
 		}
-		else if (pointer->PreviousBox != NULL)return pointer->PreviousBox;
-		else if (pointer->FatherBox != NULL)return pointer->FatherBox;
+		else if (pointer->PreviousFolder != NULL)return pointer->PreviousFolder;
+		else if (pointer->UpFolder != NULL)return pointer->UpFolder;
 		else return NULL;
 	}
 }
