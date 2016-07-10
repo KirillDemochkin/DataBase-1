@@ -1,11 +1,22 @@
+// stdafx.h : include file for standard system include files,
+// or project specific include files that are used frequently, but
+// are changed infrequently
+//
+
+#pragma once
+
+#include "targetver.h"
+
 #include <stdio.h>
+#include <tchar.h>
+
 #include <stdlib.h>
 #include <conio.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdbool.h>
 
-
+FOLDER *MainFolder = NULL;
 typedef enum TYPE
 {
 	None,
@@ -40,3 +51,7 @@ typedef struct folder
 	struct folder* DownFolder;
 	struct keys * Values;
 }FOLDER;
+
+
+
+// TODO: reference additional headers your program requires here

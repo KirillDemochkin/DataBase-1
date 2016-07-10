@@ -50,74 +50,67 @@ void Record(FOLDER * CurrentFolder, FILE * file)
 	Record(CurrentFolder->NextFolder, file);
 	Record(CurrentFolder->DownFolder, file);
 }
-///////????????????????????????????????????????????????????????????????????????????????????????????????????? B E G I N 
-void InputTree(FOLDER **currPtr)
-{
-	Instruction();
-	char buf[257], p = '/';
+char* GetName(FOLDER **currPtr){
 	bool flag = 0;
-	int c;
+	char buf[256], p = '/';
 	char *newname;
+	int c;
+
 	FOLDER *childPtr = NULL;
 	childPtr = (*currPtr)->DownFolder;
 	FOLDER *temp = NULL;
 	if ((*currPtr)->DownFolder != NULL) temp = childPtr;
 	do
 	{
+		Instruction();
 		flag = 0;
+		c = 0;
 		puts("Please enter a filename for the new folder:");
-		fgets(buf, 257, stdin);
-		c = strlen(buf);
-		while (temp != NULL)//проверка на существование в списке из братьев папки с таким именем
+		fgets(buf, 256, stdin);
+		if (buf[254] == '\n')
+			c = strlen(buf) - 1;
+		else
+			c = strlen(buf);
+		while (temp != NULL)
 		{
 			if (strcmp(buf, temp->FolderName) == 0)
 			{
 				puts("Error! Folder with this name already exists");
 				flag = 1;
-				break;
 			}
 			temp = temp->NextFolder;
 		}
-		if (c == 256) //размер имени превысил 255 символов
+		if (c == 255) 
 		{
-			puts("Error! File Names Seem to Be Limited to Less Than 255 Characters");
+			puts("Error! File names seem to be limited to less than 254 characters");
 			flag = 1;
+			while (buf[254] != NULL)
+			{
+				buf[254] = NULL;
+				fgets(buf, 256, stdin);
+			}
 		}
-		if (strchr(buf, p) != 0) //имя содержит недопустимый символ '/'
+		else
 		{
-			puts("Error! The folder name specified contains character that is not permitted: '/'");
-			flag = 1;
+			if (strchr(buf, p) != 0) 
+			{
+				puts("Error! The folder name specified contains character that is not permitted: '/'");
+				flag = 1;
+			}
+			else
+			{
+				if (c == 1) 
+				{
+					puts("Error! The folder name cannot be empty");
+					flag = 1;
+				}
+			}
 		}
-		if (c == 1) //имя пустое
-		{
-			puts("Error! The folder name cannot be empty");
-			flag = 1;
-		}
-	} while (flag != 0); //запрашиваем имя, пока оно не будет удовлетворять всем условиям
-	FOLDER *newPtr = NULL;
-	newPtr = (FOLDER*)malloc(sizeof(FOLDER));//заводим новую структуру(папку)
-	if (newPtr == NULL){
-		printf("No memory available \n");
-		return;
-	}
-	newname = (char*)malloc(sizeof(char)*(c + 1));//здесь начинаем заносить данные(имя, указатель на предка, указатели на братьев, всё остальное NULL)
+	} while (flag != 0); 
+	newname = (char*)malloc(sizeof(char)*(c + 1));
 	strcpy(newname, buf);
-	newPtr->FolderName = newname;
-	newPtr->UpFolder = *currPtr;
-	newPtr->DownFolder = NULL;
-	newPtr->File = NULL;
-	if (childPtr != NULL)
-	{
-		newPtr->NextFolder = childPtr;//прицепляем новый узел к соседу
-		(childPtr)->PreviousFolder = newPtr;//и соседа к этому узлу
-	}
-	else
-	{
-		newPtr->NextFolder = NULL;
-	}
-	newPtr->PreviousFolder = NULL;
-	(*currPtr)->DownFolder = newPtr;//прицепляем новый узел к предку
-}//здесь заканчиваем заполнение новой структуры
+	return(newname);
+}
 
 void Instruction()
 {
@@ -126,7 +119,37 @@ void Instruction()
 	puts("2. The folder name cannot be less than 1 character or more than 255 characters");
 	puts("3. The folder name cannot coitain '/' character");
 }
-///////????????????????????????????????????????????????????????????????????????????????????????????????????? E N D 
+FOLDER* InputTree(FOLDER **currPtr, char *newname)
+{
+	FOLDER *childPtr = NULL;
+	childPtr = (*currPtr)->DownFolder;
+	FOLDER *temp = NULL;
+	if ((*currPtr)->DownFolder != NULL) temp = childPtr;
+	FOLDER *newPtr = NULL;
+	newPtr = (FOLDER*)malloc(sizeof(FOLDER));
+	if (newPtr == NULL){
+		printf("No memory available \n");
+		return(NULL);
+	}
+	newPtr->FolderName = newname; 
+	newPtr->UpFolder = *currPtr;
+	newPtr->DownFolder = NULL;
+	newPtr->Values = NULL;
+	if (childPtr != NULL)
+	{
+		newPtr->NextFolder = childPtr;
+		(childPtr)->PreviousFolder = newPtr;
+	}
+	else
+	{
+		newPtr->NextFolder = NULL;
+	}
+	newPtr->PreviousFolder = NULL;
+	(*currPtr)->DownFolder = newPtr;
+	return(newPtr);
+}
+
+
 struct folder* scanfile(FILE* dat)
 {
 	FOLDER * root = (FOLDER*)malloc(sizeof(FOLDER));
