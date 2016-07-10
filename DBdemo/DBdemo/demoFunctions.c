@@ -119,6 +119,126 @@ void Instruction()
 	puts("2. The folder name cannot be less than 1 character or more than 255 characters");
 	puts("3. The folder name cannot coitain '/' character");
 }
+void Delete(FOLDER * CurrentFolder)
+{
+	if (CurrentFolder->DownFolder)
+		CurrentFolder->DownFolder = DeleteFolders(CurrentFolder->DownFolder);
+	printf("%s deleted\n", CurrentFolder->FolderName);
+	if (CurrentFolder->PreviousFolder && CurrentFolder->NextFolder)
+	{
+		CurrentFolder->PreviousFolder->NextFolder = CurrentFolder->NextFolder;
+		CurrentFolder->NextFolder->PreviousFolder = CurrentFolder->PreviousFolder;
+		free(CurrentFolder);
+	}
+	else if (CurrentFolder->PreviousFolder)
+	{
+		CurrentFolder->PreviousFolder->NextFolder = NULL;
+		free(CurrentFolder);
+	}
+	else if (CurrentFolder->NextFolder)
+	{
+		CurrentFolder->UpFolder->DownFolder = CurrentFolder->NextFolder;
+		free(CurrentFolder);
+	}
+	else if (CurrentFolder->UpFolder)
+	{
+		CurrentFolder->UpFolder->DownFolder = NULL;
+		free(CurrentFolder);
+	}
+	else
+	{
+		free(CurrentFolder);
+		MainFolder = NULL;
+	}
+}
+
+FOLDER * DeleteFolders(FOLDER * CurrentFolder)
+{
+	if (CurrentFolder == NULL)
+		return NULL;
+	CurrentFolder->NextFolder = DeleteFolders(CurrentFolder->NextFolder);
+	CurrentFolder->DownFolder = DeleteFolders(CurrentFolder->DownFolder);
+	free(CurrentFolder);
+	return NULL;
+}
+
+void Record(FOLDER * CurrentFolder, FILE * file)
+{
+	if (CurrentFolder == NULL)
+		return;
+	fprintf(file, "%s\n\n%s\n\n", CurrentFolder->UpFolder->FolderName, CurrentFolder->FolderName);
+	Record(CurrentFolder->NextFolder, file);
+	Record(CurrentFolder->DownFolder, file);
+}
+
+char* GetName(FOLDER **currPtr){
+	bool flag = 0;
+	char buf[256], p = '/';
+	char *newname;
+	int c;
+
+	FOLDER *childPtr = NULL;
+	childPtr = (*currPtr)->DownFolder;
+	FOLDER *temp = NULL;
+	if ((*currPtr)->DownFolder != NULL) temp = childPtr;
+	do
+	{
+		Instruction();
+		flag = 0;
+		c = 0;
+		puts("Please enter a filename for the new folder:");
+		fgets(buf, 256, stdin);
+		if (buf[254] == '\n')
+			c = strlen(buf) - 1;
+		else
+			c = strlen(buf);
+		while (temp != NULL)
+		{
+			if (strcmp(buf, temp->FolderName) == 0)
+			{
+				puts("Error! Folder with this name already exists");
+				flag = 1;
+			}
+			temp = temp->NextFolder;
+		}
+		if (c == 255)
+		{
+			puts("Error! File names seem to be limited to less than 254 characters");
+			flag = 1;
+			while (buf[254] != NULL)
+			{
+				buf[254] = NULL;
+				fgets(buf, 256, stdin);
+			}
+		}
+		else
+		{
+			if (strchr(buf, p) != 0)
+			{
+				puts("Error! The folder name specified contains character that is not permitted: '/'");
+				flag = 1;
+			}
+			else
+			{
+				if (c == 1)
+				{
+					puts("Error! The folder name cannot be empty");
+					flag = 1;
+				}
+			}
+		}
+	} while (flag != 0);
+	newname = (char*)malloc(sizeof(char)*(c + 1));
+	strcpy(newname, buf);
+	return(newname);
+}
+void Instruction()
+{
+	puts("Warning!");
+	puts("1. The folder name cannot be empty");
+	puts("2. The folder name cannot be less than 1 character or more than 255 characters");
+	puts("3. The folder name cannot coitain '/' character");
+}
 FOLDER* InputTree(FOLDER **currPtr, char *newname)
 {
 	FOLDER *childPtr = NULL;
@@ -131,7 +251,7 @@ FOLDER* InputTree(FOLDER **currPtr, char *newname)
 		printf("No memory available \n");
 		return(NULL);
 	}
-	newPtr->FolderName = newname; 
+	strcpy(newPtr->FolderName, newname);
 	newPtr->UpFolder = *currPtr;
 	newPtr->DownFolder = NULL;
 	newPtr->Values = NULL;
@@ -148,7 +268,6 @@ FOLDER* InputTree(FOLDER **currPtr, char *newname)
 	(*currPtr)->DownFolder = newPtr;
 	return(newPtr);
 }
-
 
 struct folder* scanfile(FILE* dat)
 {
